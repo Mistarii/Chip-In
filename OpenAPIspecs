@@ -1,0 +1,716 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "2.0",
+    "title": "Account Management API",
+    "description": "# Introduction\nThe InComm Account Management API allows third-party services to access InComm account holder data. Authorized services can access transactional account data on behalf of InComm customers.\n\nThe API is RESTful, utilizes resource-oriented URLs, accepts and returns JSON in the HTTP body, and returns HTTP response codes to indicate API errors.\n\n# Base URL\nThe InComm Account Management API is provided at the following base URL:\n\nhttps://us-central1-incomm-hackathon-api.cloudfunctions.net/api\n\n# Errors\nThe API uses standard HTTP status codes to indicate the success or failure of API calls. The body of error responses will be JSON in the following format:\n\n```json\n{\n  \"status\": 401,\n  \"message\": \"invalid x-api-key\"\n}\n```\nThe body will contain an optional \"errors\" propery on input validation errors:\n\n```json\n{\n  \"status\": 400,\n  \"message\": \"bad request\",\n  \"errors\": {\n    \"after\": {\n      \"location\": \"query\",\n      \"param\": \"before\",\n      \"value\": \"today\",\n      \"msg\": \"must be an internet date and time format date\"\n    },\n    \"type\": {\n      \"location\": \"query\",\n      \"param\": \"type\",\n      \"value\": \"deposit\",\n      \"msg\": \"valid values are 'credit' and 'debit'\"\n    }\n  }\n}\n```\n",
+    "contact": {
+      "email": "apiteam@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "us-central1-incomm-hackathon-api.cloudfunctions.net",
+  "basePath": "/api",
+  "schemes": [
+    "https"
+  ],
+  "tags": [
+    {
+      "name": "Account",
+      "description": "Create and manage accounts"
+    },
+    {
+      "name": "Transaction",
+      "description": "Create and manage transactions"
+    }
+  ],
+  "securityDefinitions": {
+    "APIKeyAuth": {
+      "description": "The APIKeyAuth authentication/authorization scheme utilizes API keys to restrict access to the Account Management API. Each client application is granted a unique API key that identifies the client application (authroization) and grants access (authorization) to the API.<br><br>Client applications must submit their unique API key on all requests as an X-API-Key header field.<br><br>**\\*Client applications must register with InComm to receive an API key.**",
+      "type": "apiKey",
+      "in": "header",
+      "name": "X-API-Key"
+    }
+  },
+  "security": [
+    {
+      "APIKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/accounts": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Create an account",
+        "description": "Accounts ids are randomly generated and returned on creation. Account balance is set to $0 on creation.\n",
+        "operationId": "AccountCreate",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Account successfully created",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            },
+            "examples": {
+              "application/json": {
+                "id": "8dfafdbc3a40",
+                "balance": 0
+              }
+            }
+          },
+          "400": {
+            "description": "Unable to create account with data provided"
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "List accounts",
+        "description": "Returns a list of all accounts associated with an API key.",
+        "operationId": "AccountList",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            },
+            "examples": {
+              "application/json": {
+                "id": "8dfafdbc3a40",
+                "balance": 10713
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          },
+          "404": {
+            "description": "Unable to find account"
+          }
+        }
+      }
+    },
+    "/accounts/{accountId}": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Inspect an account",
+        "description": "",
+        "operationId": "AccountGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to inspect."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            },
+            "examples": {
+              "application/json": {
+                "id": "8dfafdbc3a40",
+                "balance": 10713
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          },
+          "404": {
+            "description": "Unable to find account"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Update account balance",
+        "description": "Updates account balance to the amount specified.",
+        "operationId": "AccountPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to update."
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Balance to set the account to.",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "balance"
+              ],
+              "properties": {
+                "balance": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            },
+            "examples": {
+              "application/json": {
+                "id": "8dfafdbc3a40",
+                "balance": 10713
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          },
+          "404": {
+            "description": "Unable to find account"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Delete an account",
+        "description": "Removes an account and all associated transactions. **The delete operation is destructive. Data cannot be recovered after deletion.**",
+        "operationId": "AccountDelete",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to delete."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          }
+        }
+      }
+    },
+    "/accounts/{accountId}/transactions": {
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Post a transaction",
+        "description": "Create a transaction on the specified account.",
+        "operationId": "TransactionCreate",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to post a transaction to."
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Transaction to post",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Transaction"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Transaction"
+            },
+            "examples": {
+              "application/json": {
+                "id": 5689792285114368,
+                "counterParty": "jpmorganchase",
+                "type": "debit",
+                "status": "posted",
+                "description": "ATM Withdrawal: 250 Williams St. Atlanta GA 30303-1041",
+                "amount": 599,
+                "date": "2017-09-24T19:50:16.476Z"
+              }
+            }
+          },
+          "400": {
+            "description": "Unable to create transaction with data provided"
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          },
+          "500": {
+            "$ref": "#/errorDefinitions/500"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "List transactions",
+        "description": "List all transactions associated with the account specified.",
+        "operationId": "TransactionList",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to list transactions from."
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "type": "string",
+            "format": "date",
+            "description": "Transactions posted after date, in [Internet date and time format]('https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14'). For example, *yyyy-MM-ddz*."
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "type": "string",
+            "format": "date",
+            "description": "Transactions posted before date, in [Internet date and time format]('https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14'). For example, *yyyy-MM-ddz*."
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ],
+            "description": "Transaction type."
+          },
+          {
+            "in": "query",
+            "name": "counterParty",
+            "type": "string",
+            "description": "Counter party identifier."
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "type": "integer",
+            "description": "Number of results to return per call.",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          },
+          {
+            "in": "query",
+            "name": "pageOffset",
+            "type": "integer",
+            "description": "Number of results to skip to get the next page of results.",
+            "minimum": 0,
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "transactions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Transaction"
+                  }
+                },
+                "nextPageCursor": {
+                  "type": "string",
+                  "description": "This field can be sent with the next request to get the next page of transactions. When there are no more transactions, this field will be an empty string."
+                }
+              }
+            },
+            "examples": {
+              "application/json": {
+                "transactions": [
+                  {
+                    "id": 5689792285114368,
+                    "counterParty": "jpmorganchase",
+                    "type": "debit",
+                    "status": "posted",
+                    "description": "ATM Withdrawal: 250 Williams St. Atlanta GA 30303-1041",
+                    "amount": 599,
+                    "date": "2017-09-24T19:50:16.476Z"
+                  },
+                  {
+                    "id": 4689792285114221,
+                    "counterParty": "jpmorganchase",
+                    "type": "credit",
+                    "status": "posted",
+                    "description": "ATM Deposit: 250 Williams St. Atlanta GA 30303-1041",
+                    "amount": 20000,
+                    "date": "2017-09-23T17:23:11.221Z"
+                  },
+                  {
+                    "id": 2289792275114233,
+                    "counterParty": "jpmorganchase",
+                    "type": "debit",
+                    "status": "posted",
+                    "description": "ATM Withdrawal: 250 Williams St. Atlanta GA 30303-1041",
+                    "amount": 9832,
+                    "date": "2017-09-19T09:36:52.913Z"
+                  }
+                ],
+                "nextPageCursor": ""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Delete all of the user's transactions",
+        "description": "Remove all transactions associated with the specified account. **The delete operation is destructive. Data cannot be recovered after deletion.**",
+        "operationId": "TransactionDeleteAll",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to delete all transactions from."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions deleted",
+            "examples": {
+              "application/json": {
+                "count": 3
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          }
+        }
+      }
+    },
+    "/accounts/{accountId}/transactions/{transactionId}": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Inspect a transaction",
+        "description": "Retrieve a specific transaction.",
+        "operationId": "TransactionGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to get transaction from."
+          },
+          {
+            "in": "path",
+            "name": "transactionId",
+            "type": "string",
+            "required": true,
+            "description": "Transaction identifier for the transaction to inspect."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Transaction"
+            },
+            "examples": {
+              "application/json": {
+                "id": 5689792285114368,
+                "counterParty": "jpmorganchase",
+                "type": "debit",
+                "status": "posted",
+                "description": "ATM Withdrawal: 250 Williams St. Atlanta GA 30303-1041",
+                "amount": 599,
+                "date": "2017-09-24T19:50:16.476Z"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          },
+          "404": {
+            "description": "Unable to find transaction"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Delete a transaction",
+        "description": "Delete a specific transaction. **The delete operation is destructive. Data cannot be recovered after deletion.**",
+        "operationId": "TransactionDelete",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "type": "string",
+            "required": true,
+            "description": "Account identifier for the account to delete transaction from."
+          },
+          {
+            "in": "path",
+            "name": "transactionId",
+            "type": "string",
+            "required": true,
+            "description": "Transaction identifier for the transaction to delete."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "type": "integer",
+            "required": true,
+            "description": "ID of the transaction to delete."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "401": {
+            "$ref": "#/errorDefinitions/401"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Account": {
+      "type": "object",
+      "required": [
+        "id",
+        "balance"
+      ],
+      "properties": {
+        "id": {
+          "description": "Unique account identifier.",
+          "type": "string",
+          "format": "hexatridecimal"
+        },
+        "balance": {
+          "description": "Account balance represented in cents (USD). A balance of USD $107.13 is represented as 10713.",
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "xml": {
+        "name": "Account"
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "required": [
+        "type",
+        "counterParty",
+        "description",
+        "amount"
+      ],
+      "properties": {
+        "id": {
+          "description": "Transaction identifier.",
+          "type": "integer",
+          "format": "int64",
+          "readOnly": true
+        },
+        "counterParty": {
+          "description": "Identifier of initiating party.",
+          "type": "string",
+          "format": "string"
+        },
+        "type": {
+          "description": "Debit reduces account balance by amount. Credit increases account balance by amount.",
+          "type": "string",
+          "format": "string",
+          "enum": [
+            "debit",
+            "credit"
+          ]
+        },
+        "status": {
+          "description": "Always posted",
+          "type": "string",
+          "format": "string",
+          "default": "posted",
+          "x-nullable": false,
+          "enum": [
+            "posted"
+          ],
+          "readOnly": true
+        },
+        "description": {
+          "description": "Transaction description.",
+          "type": "string",
+          "format": "string",
+          "maxLength": 120
+        },
+        "amount": {
+          "description": "Transaction amount represented in cents (USD). An amount of USD $5.99 is represented as 599.",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "date": {
+          "description": "Date and time transaction posted to account",
+          "type": "string",
+          "format": "dateTime",
+          "readOnly": true
+        }
+      },
+      "xml": {
+        "name": "Transaction"
+      }
+    },
+    "DataTransaction": {
+      "type": "object",
+      "required": [
+        "counterParty",
+        "type",
+        "description",
+        "amount",
+        "date"
+      ],
+      "properties": {
+        "id": {
+          "description": "Transaction identifier.",
+          "type": "integer",
+          "format": "int64",
+          "readOnly": true
+        },
+        "counterParty": {
+          "description": "Identifier of initiating party.",
+          "type": "string",
+          "format": "string"
+        },
+        "type": {
+          "description": "Debit reduces account balance by amount. Credit increases account balance by amount.",
+          "type": "string",
+          "format": "string",
+          "enum": [
+            "debit",
+            "credit"
+          ]
+        },
+        "status": {
+          "description": "Always posted",
+          "type": "string",
+          "format": "string",
+          "default": "posted",
+          "x-nullable": false,
+          "enum": [
+            "posted"
+          ],
+          "readOnly": true
+        },
+        "description": {
+          "description": "Transaction description.",
+          "type": "string",
+          "format": "string",
+          "maxLength": 120
+        },
+        "amount": {
+          "description": "Transaction amount represented in cents (USD). An amount of USD $5.99 is represented as 599.",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "date": {
+          "description": "Date and time transaction posted to account, in [Internet date and time format]('https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14')",
+          "type": "string",
+          "format": "dateTime"
+        }
+      },
+      "xml": {
+        "name": "Transaction"
+      }
+    }
+  },
+  "errorDefinitions": {
+    "401": {
+      "description": "Access forbidden, invalid x-api-key"
+    },
+    "500": {
+      "description": "Internal server error"
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  }
+}
